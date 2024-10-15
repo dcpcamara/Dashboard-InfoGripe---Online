@@ -1,6 +1,19 @@
 # Load necessary library
 library(shiny)
 library(stringi)
+library(tidyverse)
+library(vroom)
+
+####Baixando os dados
+
+path = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/casos_semanais_fx_etaria_virus_sem_filtro_febre.csv"
+dados <- vroom(file = path)
+
+path_obt = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/obitos_semanais_fx_etaria_virus_sem_filtro_febre.csv"
+dados_obt <- vroom(file = path_obt)
+
+
+###Baixando os dados
 
 # Define the UI for the application
 ui <- fluidPage(
@@ -149,9 +162,42 @@ ui <- fluidPage(
                column(6, 
                       uiOutput("capital_image2"))
              )
-    )
-  )
+    ),
+    
+    # 5th Tab: Cases per virus
+    tabPanel("Tabelas",
+             # Dropdown menu for selecting a capital
+             
+          column(6, selectInput(inputId = "selected_state", 
+                          label ="Selecione um estado:",
+                           choices = c("BR", "AC", "AL", "AP", "AM", "BA", "CE", "DF", 
+                                          "ES", "GO", "MA", "MT", "MS", 
+                                          "MG", "PA", "PB", "PR", "PE", "PI", "RJ", 
+                                          "RN", "RS", "RO", "RR", "SC", 
+                                          "SP", "SE", "TO")
+                                          )
+                         ),
+          
+          column(6, selectInput(inputId = "selected_age", 
+                             label ="Selecione uma Faixa Etária estado:",
+                             choices = c("Total", "< 2", "65+")
+                             )
+          ),
+             
+             # Display the figures with header titles
+             h3("Tabela de casos e óbitos de SRAG por agente etiológico", 
+                class = "table-title"),
+             
+             fluidRow(
+               column(12,
+                      DT::dataTableOutput('tabela_resumo'))
+               )
+             )
+
 )
+
+)
+
 
 # Define server logic
 server <- function(input, output) {
@@ -278,6 +324,117 @@ server <- function(input, output) {
              class = "responsive-img", 
              alt = paste("Capital", capital, "Image 2"))
   })
+  
+  ###Tab 5
+  
+  tabela_download <- reactive({
+    
+    ano<- dados %>% filter(epiyear=="2024")
+    
+    dt_srag <- dados %>% filter(DS_UF_SIGLA==input$selected_state) %>%
+      filter(epiyear==2024, fx_etaria==input$selected_age)
+    
+    dt_obt <- dados_obt %>% filter(DS_UF_SIGLA==input$selected_state) %>%
+      filter(epiyear==2024, fx_etaria==input$selected_age)
+    
+    max_week<-max(ano$epiweek)-4
+    
+    
+    tabela_srag<- dt_srag %>%
+      summarise("SRAG (n)"=sum(SRAG),
+                Positivos=sum(positivos),
+                "Positivos (n)"=sum(positivos),
+                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
+                "VSR %"=round((sum(VSR)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
+                
+      ) %>% mutate(Período="2024", .before = "SRAG (n)") %>%
+      mutate(Dados="Casos", .before = "Período") %>%
+      select(!Positivos)
+      
+    
+    
+    tabela_srag_4semanas<- dt_srag %>%
+      filter(epiweek>max_week) %>%
+      summarise("SRAG (n)"=sum(SRAG),
+                Positivos=sum(positivos),
+                "Positivos (n)"=sum(positivos),
+                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
+                "VSR %"=round((sum(VSR)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
+                
+      ) %>% mutate(Período="4 semanas", .before = "SRAG (n)") %>%
+      mutate(Dados="Casos", .before = "Período") %>%
+      select(!Positivos)
+    
+    
+    tabela_srag_obt<- dt_obt %>%
+      summarise("SRAG (n)"=sum(SRAG),
+                Positivos=sum(positivos),
+                "Positivos (n)"=sum(positivos),
+                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
+                "VSR %"=round((sum(VSR)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
+                
+      ) %>% mutate(Período="2024", .before = "SRAG (n)") %>%
+      mutate(Dados="Óbitos", .before = "Período") %>%
+      select(!Positivos)
+    
+    
+    tabela_srag_4semanas_obt<- dt_obt %>%
+      filter(epiweek>max_week) %>%
+      summarise("SRAG (n)"=sum(SRAG),
+                Positivos=sum(positivos),
+                "Positivos (n)"=sum(positivos),
+                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
+                "VSR %"=round((sum(VSR)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
+                
+      ) %>% mutate(Período="4 semanas", .before = "SRAG (n)") %>%
+      mutate(Dados="Óbitos", .before = "Período") %>%
+      select(!Positivos)
+    
+    
+    
+    junt<-bind_rows(tabela_srag, tabela_srag_4semanas, tabela_srag_obt, tabela_srag_4semanas_obt)
+    
+   # teste<- junt %>%
+   #   mutate_at(.vars = 5:13, funs(paste0(. , "%", sep="")))
+    
+    DT::datatable(junt)
+    
+  })
+  
+  output$tabela_resumo <- DT::renderDataTable({
+    tabela_download()
+  })
+  
+  
+  
 }
 
 # Run the application
