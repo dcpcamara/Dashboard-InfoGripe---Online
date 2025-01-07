@@ -21,7 +21,7 @@ ui <- fluidPage(
   tags$style(HTML("
         .responsive-img {
             max-width: 100%;
-            max-height: 500px;  /* Restrict maximum height */
+            max-height: 500px;
             width: auto;
             height: auto;
             display: block;
@@ -29,7 +29,7 @@ ui <- fluidPage(
             margin-right: auto;
         }
         .logo-banner {
-            max-width: 100px; /* Adjust the size as needed */
+            max-height: 50px;
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -38,13 +38,13 @@ ui <- fluidPage(
             text-align: center;
             font-size: 24px;
             font-weight: bold;
-            padding-left: 20px; /* Spacing between logo and title */
+            padding-left: 20px;
             display: inline-block;
         }
         .figure-title {
-            text-align: center; /* Ensure titles are centered */
-            margin-left: 15px;  /* Consistent left margin for titles */    
-            margin-top: 40px;    /* Add some margin above the titles */
+            text-align: center;
+            margin-left: 15px; 
+            margin-top: 40px;
         }
         .figure-space {
             margin-bottom: 60px; /* Add space between figures */
@@ -54,9 +54,12 @@ ui <- fluidPage(
   # Include the logo and title in the same row
   fluidRow(
     column(1, 
-           img(src = "logo.png", 
+           img(src = "logo1.png", 
                class = "logo-banner")),  # Logo in the first column
-    column(11, 
+    column(1, 
+           img(src = "logo2.png", 
+               class = "logo-banner")),  # Second logo in the second column
+    column(10, 
            div("Dashboard de resultados do boletim InfoGripe", 
                class = "title-panel"))  # Title in the second column
   ),
@@ -179,7 +182,7 @@ ui <- fluidPage(
                          ),
           
           column(6, selectInput(inputId = "selected_age", 
-                             label ="Selecione uma Faixa Etária estado:",
+                             label ="Selecione uma Faixa Etária:",
                              choices = c("Total", "< 2", "65+")
                              )
           ),
