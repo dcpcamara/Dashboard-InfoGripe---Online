@@ -171,21 +171,21 @@ ui <- fluidPage(
     tabPanel("Tabelas",
              # Dropdown menu for selecting a capital
              
-          column(6, selectInput(inputId = "selected_state", 
-                          label ="Selecione um estado:",
-                           choices = c("BR", "AC", "AL", "AP", "AM", "BA", "CE", "DF", 
-                                          "ES", "GO", "MA", "MT", "MS", 
-                                          "MG", "PA", "PB", "PR", "PE", "PI", "RJ", 
-                                          "RN", "RS", "RO", "RR", "SC", 
-                                          "SP", "SE", "TO")
-                                          )
-                         ),
-          
-          column(6, selectInput(inputId = "selected_age", 
-                             label ="Selecione uma Faixa Etária:",
-                             choices = c("Total", "< 2", "65+")
-                             )
-          ),
+             column(6, selectInput(inputId = "selected_state", 
+                                   label ="Selecione um estado:",
+                                   choices = c("BR", "AC", "AL", "AP", "AM", "BA", "CE", "DF", 
+                                               "ES", "GO", "MA", "MT", "MS", 
+                                               "MG", "PA", "PB", "PR", "PE", "PI", "RJ", 
+                                               "RN", "RS", "RO", "RR", "SC", 
+                                               "SP", "SE", "TO")
+             )
+             ),
+             
+             column(6, selectInput(inputId = "selected_age", 
+                                   label ="Selecione uma Faixa Etária:",
+                                   choices = c("Total", "< 2", "65+")
+             )
+             ),
              
              # Display the figures with header titles
              h3("Tabela de casos e óbitos de SRAG por agente etiológico", 
@@ -194,11 +194,46 @@ ui <- fluidPage(
              fluidRow(
                column(12,
                       DT::dataTableOutput('tabela_resumo'))
+             )
+    ),
+    tabPanel("Sobre o InfoGripe",
+             fluidRow(
+               column(12, 
+                      div(style = "margin: 20px; font-size: 16px; line-height: 1.5;",
+                          HTML("<p><strong>InfoGripe</strong> é uma iniciativa para monitorar e apresentar níveis de alerta para os casos reportados de Síndrome Respiratória Aguda Grave (SRAG) no SINAN, o Sistema de Informação de Agravos de Notificação (<a href='http://www.saude.gov.br/sinan' target='_blank'>www.saude.gov.br/sinan</a>). Os dados são apresentados por estado e por regiões de vigilância para síndromes gripais.</p>
+                          <p>Este é um produto da parceria entre pesquisadores do Programa de Computação Científica da Fundação Oswaldo Cruz (Fiocruz, PROCC), da Escola de Matemática Aplicada da Fundação Getúlio Vargas (FGV, EMAp), no Rio de Janeiro, e do extinto GT-Influenza e atual Coordenação-Geral de Vigilância das Síndromes Gripais da Secretaria de Vigilância em Saúde do Ministério da Saúde (CGGRIPE, SVS, MS). O InfoGripe integra o conjunto de estudos que estão sendo mapeados com a  <a href='https://lac.tghn.org/proyectos-pathfinder/pathfinder-brasil/infogripe/' target='_blank'>metodologia Pathfinder</a> pela The Global Health Network Latin America and the Caribbean (TGHN LAC)
+                          <p><strong>Dados abertos e boletins:</strong></p>
+                          <ul>
+                            <li>Dados processados: <a href='https://bit.ly/infogripe-dados-fiocruz' target='_blank'>https://bit.ly/infogripe-dados-fiocruz</a>.</li>
+                            <li>Boletins do InfoGripe: <a href='http://bit.ly/mave-infogripe-fiocruz' target='_blank'>http://bit.ly/mave-infogripe-fiocruz</a>.</li>
+                          </ul>
+                          <p><strong>Software livre:</strong> GNU General Public License v3</p>
+                          <p><strong>Documentação:</strong> <a href='https://fludashboard.readthedocs.io/' target='_blank'>https://fludashboard.readthedocs.io/</a>.</p>
+                          <p><strong>Publicações científicas:</strong></p>
+                          <p>O modelo estatístico utilizado para estimativa de casos recentes (\"nowcasting\"), fundamental para reporte de situação oportuna e de qualidade, é baseado no trabalho desenvolvido em colaboração entre pesquisadores da Fiocruz e University of Exeter, UK: Bastos L, Economou T, Gomes M, Villela D, Coelho F, Cruz O, Stoner O, Bailey T, Codeço C. (2019). A modelling approach for correcting reporting delays in disease surveillance data, <em>Statistics in Medicine</em>, DOI: <a href='https://doi.org/10.1002/sim.8303' target='_blank'>10.1002/sim.8303</a>.</p>
+                          <p><strong>Membros:</strong></p>
+                          <ul>
+                            <li><a href='http://lattes.cnpq.br/1929576902623348' target='_blank'>Claudia Torres Codeço</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/4016632420686251' target='_blank'>Daniel Antunes Maciel Villela</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/1360297898724057' target='_blank'>Daniel Cardoso Portela Câmara</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/0309050626285266' target='_blank'>Flávio Codeço Coelho</a> - EMAp-FGV</li>
+                            <li><a href='http://lattes.cnpq.br/5241799121437269' target='_blank'>Leonardo Soares Bastos</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/2996805485281003' target='_blank'>Laís Picinini Freitas</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/7282202947621572' target='_blank'>Luiz Max Fagundes de Carvalho</a> - EMAp-FGV</li>
+                            <li><a href='http://lattes.cnpq.br/6064559192125515' target='_blank'>Marcelo Ferreira da Costa Gomes</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/9530671289607786' target='_blank'>Oswaldo Gonçalves Cruz</a> - PROCC-Fiocruz</li>
+                            <li><a href='http://lattes.cnpq.br/2518752229392005' target='_blank'>Raquel Martins Lana</a> - BSC, Barcelona, Espanha</li>
+                            <li><a href='http://lattes.cnpq.br/8988655613888832' target='_blank'>Tatiana Pineda Portella Zenker</a> - PROCC-Fiocruz</li>
+                          </ul>"
+                          )
+                      )
                )
              )
-
-)
-
+    )
+    
+    
+  )
+  
 )
 
 
@@ -332,92 +367,88 @@ server <- function(input, output) {
   
   tabela_download <- reactive({
     
-    ano<- dados %>% filter(epiyear=="2024")
     
     dt_srag <- dados %>% filter(DS_UF_SIGLA==input$selected_state) %>%
-      filter(epiyear==2024, fx_etaria==input$selected_age)
+      filter(epiyear==2025, fx_etaria==input$selected_age)
     
     dt_obt <- dados_obt %>% filter(DS_UF_SIGLA==input$selected_state) %>%
-      filter(epiyear==2024, fx_etaria==input$selected_age)
+      filter(epiyear==2025, fx_etaria==input$selected_age)
     
-    max_week<-max(ano$epiweek)-4
-    
+    # max_week<-max(ano$epiweek)-4
     
     tabela_srag<- dt_srag %>%
-      summarise("SRAG (n)"=sum(SRAG),
-                Positivos=sum(positivos),
-                "Positivos (n)"=sum(positivos),
-                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
-                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
-                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
-                "VSR %"=round((sum(VSR)*100)/Positivos,1),
-                "Rino %"=round((sum(RINO)*100)/Positivos,1),
-                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
-                "Meta %"=round((sum(METAP)*100)/Positivos,1),
-                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
-                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
-                
-      ) %>% mutate(Período="2024", .before = "SRAG (n)") %>%
+      filter(epiyear=="2025") %>%
+      summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
+                Positivos=sum(positivos, na.rm = TRUE),
+                "Positivos (n)"=sum(positivos, na.rm = TRUE),
+                "Flu A %"=round((sum(FLU_A, na.rm = TRUE)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B, na.rm = TRUE)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2, na.rm = TRUE)*100/Positivos,1),
+                "VSR %"=round((sum(VSR, na.rm = TRUE)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO, na.rm=TRUE)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO, na.rm=TRUE)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP, na.rm=TRUE)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA, na.rm=TRUE)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4, na.rm = TRUE)*100)/Positivos,1)) %>%
+      mutate(Período="2025", .before = "SRAG (n)") %>%
       mutate(Dados="Casos", .before = "Período") %>%
       select(!Positivos)
-      
+    
     
     
     tabela_srag_4semanas<- dt_srag %>%
-      filter(epiweek>max_week) %>%
-      summarise("SRAG (n)"=sum(SRAG),
-                Positivos=sum(positivos),
-                "Positivos (n)"=sum(positivos),
-                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
-                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
-                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
-                "VSR %"=round((sum(VSR)*100)/Positivos,1),
-                "Rino %"=round((sum(RINO)*100)/Positivos,1),
-                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
-                "Meta %"=round((sum(METAP)*100)/Positivos,1),
-                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
-                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
-                
+      #  filter(epiweek>max_week) %>%
+      summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
+                Positivos=sum(positivos, na.rm = TRUE),
+                "Positivos (n)"=sum(positivos, na.rm = TRUE),
+                "Flu A %"=round((sum(FLU_A, na.rm = TRUE)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B, na.rm = TRUE)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2, na.rm = TRUE)*100/Positivos,1),
+                "VSR %"=round((sum(VSR, na.rm = TRUE)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO, na.rm=TRUE)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO, na.rm=TRUE)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP, na.rm=TRUE)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA, na.rm=TRUE)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4, na.rm = TRUE)*100)/Positivos,1),
       ) %>% mutate(Período="4 semanas", .before = "SRAG (n)") %>%
       mutate(Dados="Casos", .before = "Período") %>%
       select(!Positivos)
     
     
     tabela_srag_obt<- dt_obt %>%
-      summarise("SRAG (n)"=sum(SRAG),
-                Positivos=sum(positivos),
-                "Positivos (n)"=sum(positivos),
-                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
-                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
-                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
-                "VSR %"=round((sum(VSR)*100)/Positivos,1),
-                "Rino %"=round((sum(RINO)*100)/Positivos,1),
-                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
-                "Meta %"=round((sum(METAP)*100)/Positivos,1),
-                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
-                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
-                
-      ) %>% mutate(Período="2024", .before = "SRAG (n)") %>%
+      filter(epiyear=="2025") %>%
+      summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
+                Positivos=sum(positivos, na.rm = TRUE),
+                "Positivos (n)"=sum(positivos, na.rm = TRUE),
+                "Flu A %"=round((sum(FLU_A, na.rm = TRUE)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B, na.rm = TRUE)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2, na.rm = TRUE)*100/Positivos,1),
+                "VSR %"=round((sum(VSR, na.rm = TRUE)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO, na.rm=TRUE)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO, na.rm=TRUE)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP, na.rm=TRUE)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA, na.rm=TRUE)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4, na.rm = TRUE)*100)/Positivos,1)) %>% 
+      mutate(Período="2025", .before = "SRAG (n)") %>%
       mutate(Dados="Óbitos", .before = "Período") %>%
       select(!Positivos)
     
     
     tabela_srag_4semanas_obt<- dt_obt %>%
-      filter(epiweek>max_week) %>%
-      summarise("SRAG (n)"=sum(SRAG),
-                Positivos=sum(positivos),
-                "Positivos (n)"=sum(positivos),
-                "Flu A %"=round((sum(FLU_A)*100)/Positivos,1),
-                "Flu_B %"=round((sum(FLU_B)*100)/Positivos,1),
-                "Covid-19 %"=round(sum(SARS2)*100/Positivos),
-                "VSR %"=round((sum(VSR)*100)/Positivos,1),
-                "Rino %"=round((sum(RINO)*100)/Positivos,1),
-                "Aden %"=round((sum(ADNO)*100)/Positivos,1),
-                "Meta %"=round((sum(METAP)*100)/Positivos,1),
-                "Boca %"=round((sum(BOCA)*100)/Positivos,1),
-                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4)*100)/Positivos,1),
-                
-      ) %>% mutate(Período="4 semanas", .before = "SRAG (n)") %>%
+      #   filter(epiweek>max_week) %>%
+      summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
+                Positivos=sum(positivos, na.rm = TRUE),
+                "Positivos (n)"=sum(positivos, na.rm = TRUE),
+                "Flu A %"=round((sum(FLU_A, na.rm = TRUE)*100)/Positivos,1),
+                "Flu_B %"=round((sum(FLU_B, na.rm = TRUE)*100)/Positivos,1),
+                "Covid-19 %"=round(sum(SARS2, na.rm = TRUE)*100/Positivos,1),
+                "VSR %"=round((sum(VSR, na.rm = TRUE)*100)/Positivos,1),
+                "Rino %"=round((sum(RINO, na.rm=TRUE)*100)/Positivos,1),
+                "Aden %"=round((sum(ADNO, na.rm=TRUE)*100)/Positivos,1),
+                "Meta %"=round((sum(METAP, na.rm=TRUE)*100)/Positivos,1),
+                "Boca %"=round((sum(BOCA, na.rm=TRUE)*100)/Positivos,1),
+                "Paraflu %"=round((sum(PARA1, PARA2, PARA3, PARA4, na.rm = TRUE)*100)/Positivos,1)) %>% 
+      mutate(Período="4 semanas", .before = "SRAG (n)") %>%
       mutate(Dados="Óbitos", .before = "Período") %>%
       select(!Positivos)
     
@@ -425,12 +456,13 @@ server <- function(input, output) {
     
     junt<-bind_rows(tabela_srag, tabela_srag_4semanas, tabela_srag_obt, tabela_srag_4semanas_obt)
     
-   # teste<- junt %>%
-   #   mutate_at(.vars = 5:13, funs(paste0(. , "%", sep="")))
+    # teste<- junt %>%
+    #   mutate_at(.vars = 5:13, funs(paste0(. , "%", sep="")))
     
     DT::datatable(junt)
     
   })
+  
   
   output$tabela_resumo <- DT::renderDataTable({
     tabela_download()
