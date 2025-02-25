@@ -3,6 +3,9 @@ library(shiny)
 library(stringi)
 library(tidyverse)
 library(vroom)
+library(janitor)
+library(rio)
+library(knitr)
 
 ####Baixando os dados
 
@@ -17,6 +20,25 @@ dados_obt <- vroom(file = path_obt)
 
 # Define the UI for the application
 ui <- fluidPage(
+  
+  # Inserting Barra Brasil
+  tags$div(
+    id = "barra-brasil", 
+    style = "background:#7F7F7F; height: 20px; padding:0 0 0 10px; display:block;",
+    tags$ul(
+      id = "menu-barra-temp",
+      style = "list-style:none;",
+      tags$li(
+        style = "display:inline; float:left; padding-right:10px; margin-right:10px; border-right:1px solid #EDEDED;",
+        tags$a(
+          href = "http://brasil.gov.br",
+          style = "font-family:sans,sans-serif; text-decoration:none; color:white;",
+          "Portal do Governo Brasileiro"
+        )
+      )
+    )
+  ),
+  
   # Add custom CSS to ensure images do not exceed the window size
   tags$style(HTML("
         .responsive-img {
@@ -54,14 +76,31 @@ ui <- fluidPage(
   # Include the logo and title in the same row
   fluidRow(
     column(1, 
-           img(src = "logo1.png", 
-               class = "logo-banner")),  # Logo in the first column
+           tags$a(
+             href = "http://info.gripe.fiocruz.br", target = "_blank",
+             tags$img(src = "logo1.png", class = "logo-banner")
+           )),
     column(1, 
-           img(src = "logo2.png", 
-               class = "logo-banner")),  # Second logo in the second column
+           tags$a(
+             href = "http://www.fiocruz.br/", target = "_blank",
+             tags$img(src = "logo-marcafiocruz_vertical_POSITIVA_24052024.png", class = "logo-banner")
+           )),
+    column(1, 
+           tags$img(src = "logo-sus.png", class = "logo-banner")
+           ),
+    column(1, 
+           tags$a(
+             href = "https://www.gov.br/saude/pt-br", target = "_blank",
+             tags$img(src = "logo-MS.png", class = "logo-banner")
+           )),
+    column(1, 
+           tags$a(
+             href = "https://lac.tghn.org", target = "_blank",
+             tags$img(src = "logo2.png", class = "logo-banner")
+           )),
     column(10, 
            div("Dashboard de resultados do boletim InfoGripe", 
-               class = "title-panel"))  # Title in the second column
+               class = "title-panel"))
   ),
   
   # Create a tab layout
@@ -69,19 +108,24 @@ ui <- fluidPage(
     # First Tab: Trends
     tabPanel("Tendências",
              # Two figures vertically with titles
-             h3("Mapa de tendência de SRAG para o curto e longo prazo - Unidades Federativas", 
+             h3("Mapa de atividade e tendência de SRAG - Unidades Federativas", 
                 class = "figure-title"),
              fluidRow(
                uiOutput("trends_figure1")
              ),
-             h3("Mapa de tendência de SRAG para o curto e longo prazo - somente capitais", 
+             h3("Mapa de atividade e tendência de SRAG  - somente capitais", 
                 class = "figure-title"),
              fluidRow(
                uiOutput("trends_figure2")
              )
     ),
     
-    # Second Tab: Brazil
+    # Second Tab: Summary of the weekly results
+    tabPanel("Resumo dos resultados",
+             uiOutput("resumo_resultados")
+    ),
+    
+    # Third Tab: Brazil
     tabPanel("Brasil",
              # Figures 1 and 2 side by side with a header
              h3("Figura 1. Série temporal, estimativa de casos recentes de SRAG e tendências de curto e longo prazo em todo o território nacional - geral e por faixas etárias de interesse.", 
@@ -120,7 +164,7 @@ ui <- fluidPage(
              )
     ),
     
-    # Third Tab: Brazilian States
+    # Fourth Tab: Brazilian States
     tabPanel("Unidades Federativas",
              # Dropdown menu for selecting a state
              selectInput("selected_state", "Selecione uma Unidade Federativa:",
@@ -146,7 +190,7 @@ ui <- fluidPage(
              )
     ),
     
-    # Fourth Tab: Brazilian Capitals
+    # Fifth Tab: Brazilian Capitals
     tabPanel("Capitais",
              # Dropdown menu for selecting a capital
              selectInput("selected_capital", "Selecione uma Capital:",
@@ -167,7 +211,7 @@ ui <- fluidPage(
              )
     ),
     
-    # 5th Tab: Cases per virus
+    # Sixth Tab: Cases per virus
     tabPanel("Tabelas",
              # Dropdown menu for selecting a capital
              
@@ -196,6 +240,8 @@ ui <- fluidPage(
                       DT::dataTableOutput('tabela_resumo'))
              )
     ),
+    
+    # Seventh Tab: About InfoGripe
     tabPanel("Sobre o InfoGripe",
              fluidRow(
                column(12, 
@@ -229,11 +275,10 @@ ui <- fluidPage(
                       )
                )
              )
-    )
-    
+    ),
+    tags$script(defer = "defer", src = "//barra.brasil.gov.br/barra_2.0.js", type = "text/javascript")
     
   )
-  
 )
 
 
@@ -242,18 +287,301 @@ server <- function(input, output) {
   
   ### Tab 1: Trends Figures
   output$trends_figure1 <- renderUI({
-    tags$img(src = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/UF/Mapa_ufs_tendencia.png", 
+    tags$img(src = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/UF/Mapa_ufs_intensidade_tendencia.png", 
              class = "responsive-img", 
              alt = "Trends Figure 1")
   })
   
   output$trends_figure2 <- renderUI({
-    tags$img(src = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/Capitais/Mapa_capitais_tendencia.png", 
+    tags$img(src = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/Capitais/Mapa_capitais_intensidade_tendencia.png", 
              class = "responsive-img", 
              alt = "Trends Figure 2")
   })
   
-  ### Tab 2: Brazil Static Figures
+  ### Tab 2: Summary of results
+  ### Cases and deaths data
+  # Cases
+  dados_casos <- dados %>% 
+    clean_names() %>% 
+    filter(ds_uf_sigla == "BR",
+           fx_etaria == "Total",
+           ano_epidemiologico == year(Sys.Date()))
+  
+  df_casos <- dados_casos %>% 
+    summarise(across(c(srag:aguardando), ~sum(.)))
+  
+  df_casos_4sem <- dados_casos %>% 
+    filter(semana_epidemiologica >= isoweek(Sys.Date()) - 4,
+           semana_epidemiologica <= isoweek(Sys.Date()) - 1) %>% 
+    summarise(across(c(srag:aguardando), ~sum(.)))
+  
+  # Deaths
+  dados_obitos <- dados_obt %>% 
+    clean_names() %>% 
+    filter(ds_uf_sigla == "BR",
+           fx_etaria == "Total",
+           ano_epidemiologico == year(Sys.Date()))
+  
+  df_obitos <- dados_obitos %>% 
+    summarise(across(c(srag:aguardando), ~sum(.)))
+  
+  df_obitos_4sem <- dados_obitos %>% 
+    filter(semana_epidemiologica >= isoweek(Sys.Date()) - 4,
+           semana_epidemiologica <= isoweek(Sys.Date()) - 1) %>% 
+    summarise(across(c(srag:aguardando), ~sum(.)))
+  
+  ### Trend data
+  
+  path_tendencia_uf <- "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/estados_e_pais_serie_estimativas_tendencia_sem_filtro_febre.csv"
+  dados_tendencia_uf <- import(path_tendencia_uf, dec = ",") %>% 
+    clean_names() %>% 
+    mutate(casos_estimados = as.numeric(casos_estimados),
+           tipo = "uf")
+  
+  path_tendencia_capitais <- "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/capitais_serie_estimativas_tendencia_sem_filtro_febre.csv"
+  dados_tendencia_capitais <- import(path_tendencia_capitais, dec = ",") %>% 
+    clean_names() %>% 
+    mutate(casos_estimados = as.numeric(casos_estimados),
+           tipo = "capital",
+           co_mun_res_nome = str_to_title(co_mun_res_nome))
+  
+  df_uf_tendencia <- dados_tendencia_uf %>% 
+    filter(ds_uf_sigla != "BR",
+           ano_epidemiologico == year(Sys.Date()),
+           semana_epidemiologica == isoweek(Sys.Date()) - 1,
+           escala == "casos") %>% 
+    select(casos_estimados, tendencia_de_longo_prazo, co_uf, ds_uf_sigla, tipo,
+           semana_epidemiologica, ano_epidemiologico, escala) %>% 
+    rename(regiao = ds_uf_sigla)
+  
+  df_capitais_tendencia <- dados_tendencia_capitais %>% 
+    filter(ano_epidemiologico == year(Sys.Date()),
+           semana_epidemiologica == isoweek(Sys.Date()) - 1,
+           escala == "casos") %>% 
+    select(casos_estimados, tendencia_de_longo_prazo, co_uf, co_mun_res_nome, tipo,
+           semana_epidemiologica, ano_epidemiologico, escala) %>% 
+    rename(regiao = co_mun_res_nome)
+  
+  df_tendencia <- bind_rows(df_uf_tendencia, df_capitais_tendencia)
+  
+  ### Activity level data
+  
+  path_atividade_uf <- "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/estados_intensidade_sem_filtro_febre.csv"
+  dados_atividade_uf <- import(path_atividade_uf, dec = ",") %>% 
+    clean_names() %>% 
+    rename(regiao = ds_uf_sigla) %>% 
+    mutate(tipo = "uf")
+  
+  path_atividade_capitais <- "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Dados/InfoGripe/capitais_intensidade_sem_filtro_febre.csv"
+  dados_atividade_capitais <- import(path_atividade_capitais, dec = ",") %>% 
+    clean_names() %>% 
+    rename(regiao = co_mun_res_nome) %>% 
+    mutate(tipo = "capital",
+           regiao = str_to_title(regiao)) %>% 
+    select(-co_mun_res, -ds_uf_sigla)
+  
+  df_atividade <- bind_rows(dados_atividade_uf, dados_atividade_capitais)
+  
+  ### UF full names
+  
+  df_ufs_extenso <- data.frame(
+    uf_extenso = c("Acre", "Alagoas", "Amapá", "Amazonas",
+                   "Bahia", "Ceará", "Distrito Federal", "Espírito Santo",
+                   "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul",
+                   "Minas Gerais", "Pará", "Paraíba", "Paraná",
+                   "Pernambuco", "Piauí", "Rio de Janeiro", "Rio Grande do Norte",
+                   "Rio Grande do Sul", "Rondônia", "Roraima", "Santa Catarina",
+                   "São Paulo", "Sergipe", "Tocantins"),
+    nm_uf = c("AC", "AL", "AP", "AM",
+              "BA", "CE", "DF", "ES",
+              "GO", "MA", "MT", "MS",
+              "MG", "PA", "PB", "PR",
+              "PE", "PI", "RJ", "RN",
+              "RS", "RO", "RR", "SC",
+              "SP", "SE", "TO"),
+    stringsAsFactors = FALSE
+  )
+  
+  # Joining activity level, trend and full names
+  df_texto_filtro <- df_atividade %>% 
+    select(-regiao) %>% 
+    left_join(df_tendencia, by = c("co_uf", "tipo")) %>% 
+    mutate(regiao = ifelse(regiao == "Regiao De Saude Central", "Brasília", regiao)) %>% 
+    filter(intensidade %in% c("Alerta", "Risco", "Alto risco")) %>% 
+    left_join(df_ufs_extenso, by = c("regiao" = "nm_uf"))
+  
+  df_ufs <- df_atividade %>% 
+    filter(tipo == "uf") %>% 
+    select(co_uf, regiao) %>% 
+    rename(nm_uf = regiao)
+  
+  df_capitais_com_uf <- df_atividade %>% 
+    select(-regiao) %>% 
+    left_join(df_tendencia, by = c("co_uf", "tipo")) %>% 
+    left_join(df_ufs) %>% 
+    left_join(df_ufs_extenso) %>% 
+    mutate(regiao = ifelse(regiao == "Regiao De Saude Central", "Brasília", regiao),
+           capital_uf = ifelse(tipo == "capital", paste0(regiao, " (", nm_uf, ")"), NA_character_)) %>% 
+    filter(intensidade %in% c("Alerta", "Risco", "Alto risco"))
+  
+  ### Creating the full text for the Result Summary tab
+  output$resumo_resultados <- renderUI({
+    
+    ## Section "SARI Cases"
+    # Total, positives and waiting
+    casos_total_srag <- format(df_casos$srag, big.mark = ".", decimal.mark = ",")
+    casos_total_positivos <- format(df_casos$positivos, big.mark = ".", decimal.mark = ",")
+    casos_total_positivos_perc <- format(round(100 * df_casos$positivos / df_casos$srag, 1),
+                                         big.mark = ".", decimal.mark = ",")
+    casos_total_negativos <- format(df_casos$negativos, big.mark = ".", decimal.mark = ",")
+    casos_total_negativos_perc <- format(round(100 * df_casos$negativos / df_casos$srag, 1),
+                                         big.mark = ".", decimal.mark = ",")
+    casos_total_aguardando <- format(df_casos$aguardando, big.mark = ".", decimal.mark = ",")
+    casos_total_aguardando_perc <- format(round(100 * df_casos$aguardando / df_casos$srag, 1),
+                                          big.mark = ".", decimal.mark = ",")
+    
+    # Year's totals
+    casos_perc_flua <- format(round(100 * df_casos$flu_a / df_casos$positivos, 1),
+                              big.mark = ".", decimal.mark = ",")
+    casos_perc_flub <- format(round(100 * df_casos$flu_b / df_casos$positivos, 1),
+                              big.mark = ".", decimal.mark = ",")
+    casos_perc_vsr <- format(round(100 * df_casos$vsr / df_casos$positivos, 1),
+                             big.mark = ".", decimal.mark = ",")
+    casos_perc_rino <- format(round(100 * df_casos$rino / df_casos$positivos, 1),
+                              big.mark = ".", decimal.mark = ",")
+    casos_perc_sars2 <- format(round(100 * df_casos$sars2 / df_casos$positivos, 1),
+                               big.mark = ".", decimal.mark = ",")
+    
+    # Last 4 weeks' totals
+    casos_perc_4sem_flua <- format(round(100 * df_casos_4sem$flu_a / df_casos_4sem$positivos, 1),
+                                   big.mark = ".", decimal.mark = ",")
+    casos_perc_4sem_flub <- format(round(100 * df_casos_4sem$flu_b / df_casos_4sem$positivos, 1),
+                                   big.mark = ".", decimal.mark = ",")
+    casos_perc_4sem_vsr <- format(round(100 * df_casos_4sem$vsr / df_casos_4sem$positivos, 1),
+                                  big.mark = ".", decimal.mark = ",")
+    casos_perc_4sem_rino <- format(round(100 * df_casos_4sem$rino / df_casos_4sem$positivos, 1),
+                                   big.mark = ".", decimal.mark = ",")
+    casos_perc_4sem_sars2 <- format(round(100 * df_casos_4sem$sars2 / df_casos_4sem$positivos, 1),
+                                    big.mark = ".", decimal.mark = ",")
+    
+    ## Section "SARI Deaths"
+    # Total, positives and waiting
+    obitos_total_srag <- format(df_obitos$srag, big.mark = ".", decimal.mark = ",")
+    obitos_total_positivos <- format(df_obitos$positivos, big.mark = ".", decimal.mark = ",")
+    obitos_total_positivos_perc <- format(round(100 * df_obitos$positivos / df_obitos$srag, 1),
+                                          big.mark = ".", decimal.mark = ",")
+    obitos_total_negativos <- format(df_obitos$negativos, big.mark = ".", decimal.mark = ",")
+    obitos_total_negativos_perc <- format(round(100 * df_obitos$negativos / df_obitos$srag, 1),
+                                          big.mark = ".", decimal.mark = ",")
+    obitos_total_aguardando <- format(df_obitos$aguardando, big.mark = ".", decimal.mark = ",")
+    obitos_total_aguardando_perc <- format(round(100 * df_obitos$aguardando / df_obitos$srag, 1),
+                                           big.mark = ".", decimal.mark = ",")
+    
+    # Year's totals
+    obitos_perc_flua <- format(round(100 * df_obitos$flu_a / df_obitos$positivos, 1),
+                               big.mark = ".", decimal.mark = ",")
+    obitos_perc_flub <- format(round(100 * df_obitos$flu_b / df_obitos$positivos, 1),
+                               big.mark = ".", decimal.mark = ",")
+    obitos_perc_vsr <- format(round(100 * df_obitos$vsr / df_obitos$positivos, 1),
+                              big.mark = ".", decimal.mark = ",")
+    obitos_perc_rino <- format(round(100 * df_obitos$rino / df_obitos$positivos, 1),
+                               big.mark = ".", decimal.mark = ",")
+    obitos_perc_sars2 <- format(round(100 * df_obitos$sars2 / df_obitos$positivos, 1),
+                                big.mark = ".", decimal.mark = ",")
+    
+    # Last 4 weeks' totals
+    obitos_perc_4sem_flua <- format(round(100 * df_obitos_4sem$flu_a / df_obitos_4sem$positivos, 1),
+                                    big.mark = ".", decimal.mark = ",")
+    obitos_perc_4sem_flub <- format(round(100 * df_obitos_4sem$flu_b / df_obitos_4sem$positivos, 1),
+                                    big.mark = ".", decimal.mark = ",")
+    obitos_perc_4sem_vsr <- format(round(100 * df_obitos_4sem$vsr / df_obitos_4sem$positivos, 1),
+                                   big.mark = ".", decimal.mark = ",")
+    obitos_perc_4sem_rino <- format(round(100 * df_obitos_4sem$rino / df_obitos_4sem$positivos, 1),
+                                    big.mark = ".", decimal.mark = ",")
+    obitos_perc_4sem_sars2 <- format(round(100 * df_obitos_4sem$sars2 / df_obitos_4sem$positivos, 1),
+                                     big.mark = ".", decimal.mark = ",")
+    
+    ## Section "Situation in the states"
+    num_ufs_afetadas_atividade <- nrow(df_texto_filtro %>% filter(tipo == "uf"))
+    sem_epidemio_uf <- unique(df_texto_filtro %>% filter(tipo == "uf") %>% pull(semana_epidemiologica))
+    ufs_afetadas_atividade <- df_texto_filtro %>% 
+      filter(tipo == "uf") %>% 
+      arrange(uf_extenso) %>% 
+      pull(uf_extenso) %>% 
+      combine_words(and = " e ", oxford_comma = FALSE)
+    num_ufs_afetadas_tendencia <- nrow(df_texto_filtro %>% filter(tipo == "uf", tendencia_de_longo_prazo > 0.1))
+    ufs_afetadas_tendencia <- df_texto_filtro %>% 
+      filter(tipo == "uf", tendencia_de_longo_prazo > 0.1) %>% 
+      arrange(uf_extenso) %>% 
+      pull(uf_extenso) %>% 
+      combine_words(and = " e ", oxford_comma = FALSE)
+    
+    ## Section "Situation in the capitals"
+    num_capitais_afetadas_atividade <- nrow(df_texto_filtro %>% filter(tipo == "capital"))
+    sem_epidemio_cap <- unique(df_texto_filtro %>% filter(tipo == "capital") %>% pull(semana_epidemiologica))
+    capitais_afetadas_atividade <- df_capitais_com_uf %>% 
+      filter(tipo == "capital") %>% 
+      arrange(capital_uf) %>% 
+      pull(capital_uf) %>% 
+      combine_words(and = " e ", oxford_comma = FALSE)
+    num_capitais_afetadas_tendencia <- nrow(df_texto_filtro %>% filter(tipo == "capital", tendencia_de_longo_prazo > 0.1))
+    capitais_afetadas_tendencia <- df_capitais_com_uf %>% 
+      filter(tipo == "capital", tendencia_de_longo_prazo > 0.1) %>% 
+      arrange(capital_uf) %>% 
+      pull(capital_uf) %>% 
+      combine_words(and = " e ", oxford_comma = FALSE)
+    
+    ## Full HTML text
+    texto_resumo <- paste0(
+      "<div style='padding:20px; font-family: Arial, sans-serif; font-size:16px; line-height:1.5;'>",
+      "<h3 style='color:#2C3E50; margin-bottom:20px;'>Casos de SRAG</h3>",
+      "<p>Referente ao ano epidemiológico 2025, já foram notificados ", casos_total_srag, 
+      " casos de SRAG, sendo ", casos_total_positivos, " (", casos_total_positivos_perc, 
+      "%) com resultado laboratorial positivo para algum vírus respiratório, ", 
+      casos_total_negativos, " (", casos_total_negativos_perc, 
+      "%) negativos, e ao menos ", casos_total_aguardando, " (", casos_total_aguardando_perc, 
+      "%) aguardando resultado laboratorial. Dados de positividade para semanas recentes estão sujeitos a grandes alterações em atualizações seguintes por conta do fluxo de notificação de casos e inserção do resultado laboratorial associado.</p>",
+      "<p>Dentre os casos positivos do ano corrente, observou-se ", casos_perc_flua, 
+      "% de Influenza A, ", casos_perc_flub, "% de Influenza B, ", casos_perc_vsr, 
+      "% de vírus sincicial respiratório, ", casos_perc_rino, "% de Rinovírus, e ", 
+      casos_perc_sars2, "% de SARS-CoV-2 (COVID-19). Nas 4 últimas semanas epidemiológicas, a prevalência entre os casos positivos foi de ", 
+      casos_perc_4sem_flua, "% de Influenza A, ", casos_perc_4sem_flub, "% de Influenza B, ", 
+      casos_perc_4sem_vsr, "% de vírus sincicial respiratório, ", casos_perc_4sem_rino, 
+      "% de Rinovírus, e ", casos_perc_4sem_sars2, "% de SARS-CoV-2 (COVID-19).</p>",
+      "<h3 style='color:#2C3E50; margin-bottom:20px;'>Óbitos de SRAG</h3>",
+      "<p>Referente aos óbitos de SRAG em 2025, já foram registrados ", obitos_total_srag, 
+      " óbitos de SRAG, sendo ", obitos_total_positivos, " (", obitos_total_positivos_perc, 
+      "%) com resultado laboratorial positivo para algum vírus respiratório, ", 
+      obitos_total_negativos, " (", obitos_total_negativos_perc, 
+      "%) negativos, e ao menos ", obitos_total_aguardando, " (", obitos_total_aguardando_perc, 
+      "%) aguardando resultado laboratorial.</p>",
+      "<p>Dentre os óbitos positivos do ano corrente, observou-se ", obitos_perc_flua, 
+      "% de Influenza A, ", obitos_perc_flub, "% de Influenza B, ", obitos_perc_vsr, 
+      "% de vírus sincicial respiratório, ", obitos_perc_rino, "% de Rinovírus, e ", 
+      obitos_perc_sars2, "% de SARS-CoV-2 (COVID-19). Nas 4 últimas semanas epidemiológicas, a prevalência entre os óbitos positivos foi de ", 
+      obitos_perc_4sem_flua, "% de Influenza A, ", obitos_perc_4sem_flub, "% de Influenza B, ", 
+      obitos_perc_4sem_vsr, "% de vírus sincicial respiratório, ", obitos_perc_4sem_rino, 
+      "% de Rinovírus, e ", obitos_perc_4sem_sars2, "% de SARS-CoV-2 (COVID-19).</p>",
+      "<h3 style='color:#2C3E50; margin-bottom:20px;'>Situação nos estados</h3>",
+      "<p>Na presente atualização, observa-se que ", num_ufs_afetadas_atividade, 
+      " das 27 unidades federativas apresentam nível de atividade de SRAG em alerta, risco ou alto risco (últimas duas semanas) até a semana ", 
+      sem_epidemio_uf, ": ", ufs_afetadas_atividade, ". Dentre essas UFs, ", num_ufs_afetadas_tendencia, 
+      " também apresentam sinal de crescimento de SRAG na tendência de longo prazo (últimas 6 semanas) até a semana ", 
+      sem_epidemio_uf, ": ", ufs_afetadas_tendencia, ".</p>",
+      "<h3 style='color:#2C3E50; margin-bottom:20px;'>Situação nas capitais</h3>",
+      "<p>Na presente atualização, observa-se que ", num_capitais_afetadas_atividade, 
+      " das 27 capitais apresentam nível de atividade de SRAG em alerta, risco ou alto risco (últimas duas semanas) até a semana ", 
+      sem_epidemio_cap, ": ", capitais_afetadas_atividade, ". Dentre essas capitais, ", num_capitais_afetadas_tendencia, 
+      " também apresentam sinal de crescimento de SRAG na tendência de longo prazo (últimas 6 semanas) até a semana ", 
+      sem_epidemio_cap, ": ", capitais_afetadas_tendencia, ".</p>",
+      "</div>"
+    )
+    
+    HTML(texto_resumo)
+    
+  })
+  
+  ### Tab 3: Brazil Static Figures
   output$brazil_figure1 <- renderUI({
     tags$img(src = "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/UF/fig_BR.png", 
              class = "responsive-img", 
@@ -290,7 +618,7 @@ server <- function(input, output) {
              alt = "Brazil Figure 6")
   })
   
-  ### Tab 3: Brazilian States
+  ### Tab 4: Brazilian States
   get_image_url <- function(state, image_number) {
     base_url <- "https://gitlab.fiocruz.br/marcelo.gomes/infogripe/-/raw/master/Boletins%20do%20InfoGripe/Imagens/UF/"
     if (image_number == 1) {
@@ -323,7 +651,7 @@ server <- function(input, output) {
              alt = paste("UF", state, "Image 3"))
   })
   
-  ### Tab 4: Brazilian Capitals
+  ### Tab 5: Brazilian Capitals
   get_capital_image_url <- function(capital, image_number) {
     # Map capital names to state abbreviations
     state_abbr <- switch(
@@ -363,10 +691,9 @@ server <- function(input, output) {
              alt = paste("Capital", capital, "Image 2"))
   })
   
-  ###Tab 5
+  ###Tab 6
   
   tabela_download <- reactive({
-    
     
     dt_srag <- dados %>% filter(DS_UF_SIGLA==input$selected_state) %>%
       filter(epiyear==2025, fx_etaria==input$selected_age)
@@ -374,7 +701,7 @@ server <- function(input, output) {
     dt_obt <- dados_obt %>% filter(DS_UF_SIGLA==input$selected_state) %>%
       filter(epiyear==2025, fx_etaria==input$selected_age)
     
-    # max_week<-max(ano$epiweek)-4
+    max_week<-max(dt_srag$epiweek)-4
     
     tabela_srag<- dt_srag %>%
       filter(epiyear=="2025") %>%
@@ -394,10 +721,8 @@ server <- function(input, output) {
       mutate(Dados="Casos", .before = "Período") %>%
       select(!Positivos)
     
-    
-    
     tabela_srag_4semanas<- dt_srag %>%
-      #  filter(epiweek>max_week) %>%
+      filter(epiweek>max_week) %>%
       summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
                 Positivos=sum(positivos, na.rm = TRUE),
                 "Positivos (n)"=sum(positivos, na.rm = TRUE),
@@ -413,7 +738,6 @@ server <- function(input, output) {
       ) %>% mutate(Período="4 semanas", .before = "SRAG (n)") %>%
       mutate(Dados="Casos", .before = "Período") %>%
       select(!Positivos)
-    
     
     tabela_srag_obt<- dt_obt %>%
       filter(epiyear=="2025") %>%
@@ -433,9 +757,8 @@ server <- function(input, output) {
       mutate(Dados="Óbitos", .before = "Período") %>%
       select(!Positivos)
     
-    
     tabela_srag_4semanas_obt<- dt_obt %>%
-      #   filter(epiweek>max_week) %>%
+      filter(epiweek>max_week) %>%
       summarise("SRAG (n)"=sum(SRAG, na.rm = TRUE),
                 Positivos=sum(positivos, na.rm = TRUE),
                 "Positivos (n)"=sum(positivos, na.rm = TRUE),
@@ -452,8 +775,6 @@ server <- function(input, output) {
       mutate(Dados="Óbitos", .before = "Período") %>%
       select(!Positivos)
     
-    
-    
     junt<-bind_rows(tabela_srag, tabela_srag_4semanas, tabela_srag_obt, tabela_srag_4semanas_obt)
     
     # teste<- junt %>%
@@ -463,13 +784,9 @@ server <- function(input, output) {
     
   })
   
-  
   output$tabela_resumo <- DT::renderDataTable({
     tabela_download()
   })
-  
-  
-  
 }
 
 # Run the application
